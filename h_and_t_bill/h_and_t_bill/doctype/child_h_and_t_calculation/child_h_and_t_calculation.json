@@ -1,0 +1,281 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-07-27 11:03:46.484402",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "contract_id",
+  "total_weight",
+  "column_break_nrtop",
+  "vender_id",
+  "type",
+  "column_break_5s9dv",
+  "vender_name",
+  "vehicle_type",
+  "total_amount_section",
+  "total",
+  "deduction",
+  "column_break_avcit",
+  "payable_amt",
+  "all_type_deductions_section",
+  "tds_deduction",
+  "hire_charge",
+  "sales_invoice_deduction",
+  "sales_invoice_deduction_store_material",
+  "lone_deduction",
+  "hrt_machine_advance",
+  "column_break_t1tdm",
+  "sd_deduction",
+  "penalty_charge",
+  "loan_interest_deduction",
+  "other_deductions",
+  "bullock_cart_advance",
+  "transporter_advance",
+  "section_break_ay9rd",
+  "all_deduction_information",
+  "cart_no_list",
+  "column_break_broji",
+  "cartno",
+  "remaining_hire_charge",
+  "hire_account",
+  "deduction_doc",
+  "transporter",
+  "other_collection",
+  "other_deduction",
+  "partner_id",
+  "paid_amount",
+  "payment_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "vender_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Vender Name"
+  },
+  {
+   "fieldname": "vender_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Vender Id"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type "
+  },
+  {
+   "fieldname": "contract_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contract Id"
+  },
+  {
+   "default": "0",
+   "fieldname": "total",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Collection Amt"
+  },
+  {
+   "fieldname": "deduction",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Deduction Amt"
+  },
+  {
+   "fieldname": "payable_amt",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Payable Amt"
+  },
+  {
+   "fieldname": "total_weight",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Weight"
+  },
+  {
+   "fieldname": "sales_invoice_deduction",
+   "fieldtype": "Currency",
+   "label": "Sales Invoice Deduction (Diesel Sale)"
+  },
+  {
+   "fieldname": "other_deductions",
+   "fieldtype": "Currency",
+   "label": "Other Deduction"
+  },
+  {
+   "fieldname": "lone_deduction",
+   "fieldtype": "Currency",
+   "label": "Loan Deduction"
+  },
+  {
+   "fieldname": "loan_interest_deduction",
+   "fieldtype": "Currency",
+   "label": "Loan Interest Deduction"
+  },
+  {
+   "fieldname": "all_deduction_information",
+   "fieldtype": "Small Text",
+   "label": "All Deduction Information"
+  },
+  {
+   "default": "0",
+   "fieldname": "payment_status",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Payment Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "vehicle_type",
+   "fieldtype": "Data",
+   "label": "Vehicle Type"
+  },
+  {
+   "fieldname": "tds_deduction",
+   "fieldtype": "Currency",
+   "label": "TDS Deduction"
+  },
+  {
+   "fieldname": "sd_deduction",
+   "fieldtype": "Currency",
+   "label": "SD Deduction"
+  },
+  {
+   "fieldname": "column_break_nrtop",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_5s9dv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_amount_section",
+   "fieldtype": "Section Break",
+   "label": "Total Amounts"
+  },
+  {
+   "fieldname": "column_break_avcit",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "all_type_deductions_section",
+   "fieldtype": "Section Break",
+   "label": "Deduction Amounts"
+  },
+  {
+   "fieldname": "column_break_t1tdm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ay9rd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cartno",
+   "fieldtype": "Int",
+   "label": "Cart No"
+  },
+  {
+   "fieldname": "column_break_broji",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "hire_charge",
+   "fieldtype": "Currency",
+   "label": "Hire Charge Deduction"
+  },
+  {
+   "fieldname": "remaining_hire_charge",
+   "fieldtype": "Float",
+   "label": "Remaining Hire Charge"
+  },
+  {
+   "fieldname": "hire_account",
+   "fieldtype": "Data",
+   "label": "Hire Account"
+  },
+  {
+   "fieldname": "deduction_doc",
+   "fieldtype": "Data",
+   "label": "Hire Deduction Doc"
+  },
+  {
+   "fieldname": "cart_no_list",
+   "fieldtype": "Data",
+   "label": "Cart No List"
+  },
+  {
+   "fieldname": "transporter",
+   "fieldtype": "Data",
+   "label": "Transporter"
+  },
+  {
+   "fieldname": "penalty_charge",
+   "fieldtype": "Currency",
+   "label": "Penalty Deduction"
+  },
+  {
+   "fieldname": "other_collection",
+   "fieldtype": "Data",
+   "label": "Other Collection"
+  },
+  {
+   "fieldname": "other_deduction",
+   "fieldtype": "Data",
+   "label": "Other Deduction"
+  },
+  {
+   "fieldname": "partner_id",
+   "fieldtype": "Data",
+   "label": "Partner Id"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "paid_amount",
+   "fieldtype": "Float",
+   "label": "Paid Amount",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_invoice_deduction_store_material",
+   "fieldtype": "Currency",
+   "label": "Sales Invoice Deduction(Store Material)"
+  },
+  {
+   "fieldname": "hrt_machine_advance",
+   "fieldtype": "Currency",
+   "label": "HRT Machine Advance"
+  },
+  {
+   "fieldname": "bullock_cart_advance",
+   "fieldtype": "Currency",
+   "label": "Bullock Cart Advance"
+  },
+  {
+   "fieldname": "transporter_advance",
+   "fieldtype": "Currency",
+   "label": "Transporter Advance"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-08-24 14:27:17.607732",
+ "modified_by": "Administrator",
+ "module": "H And T Bill",
+ "name": "Child H and T Calculation",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
