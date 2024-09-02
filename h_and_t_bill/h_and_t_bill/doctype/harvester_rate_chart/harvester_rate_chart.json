@@ -15,6 +15,7 @@
   "per_km_rate",
   "column_break_5fj0z",
   "vender_type",
+  "gang_type",
   "amended_from"
  ],
  "fields": [
@@ -64,12 +65,18 @@
    "options": "Harvester Rate Chart",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "gang_type",
+   "fieldtype": "Link",
+   "label": "Gang Type",
+   "options": "Gang Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-08-04 11:03:28.528904",
+ "modified": "2024-08-30 10:23:34.229982",
  "modified_by": "Administrator",
  "module": "H And T Bill",
  "name": "Harvester Rate Chart",

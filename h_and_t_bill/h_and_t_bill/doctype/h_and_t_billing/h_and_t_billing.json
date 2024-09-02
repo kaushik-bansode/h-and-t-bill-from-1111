@@ -65,8 +65,10 @@
   "net_total_pay_har",
   "section_break_laear",
   "net_total_wight_bul",
+  "purpose",
   "column_break_ulodu",
   "net_total_collection_bul",
+  "narration",
   "column_break_udi6k",
   "net_total_ded_bul",
   "column_break_pock0",
@@ -412,6 +414,17 @@
    "fieldname": "posting_date",
    "fieldtype": "Date",
    "label": "Posting Date"
+  },
+  {
+   "fieldname": "narration",
+   "fieldtype": "Small Text",
+   "label": "Narration"
+  },
+  {
+   "fieldname": "purpose",
+   "fieldtype": "Link",
+   "label": "Purpose",
+   "options": "Standard Naration"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -422,7 +435,7 @@
    "link_fieldname": "custom_h_and_t_billing_id"
   }
  ],
- "modified": "2024-08-24 14:53:40.525454",
+ "modified": "2024-08-30 13:25:28.435203",
  "modified_by": "Administrator",
  "module": "H And T Bill",
  "name": "H and T Billing",

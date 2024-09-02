@@ -61,25 +61,25 @@ class HandTBilling(Document):
 					)   
 		
 	#To select all venders after clicking select all
-	@frappe.whitelist()
-	def selectall(self):
-		"""
-		selects all children and checks all are checked and marks their status as True
+	# @frappe.whitelist()
+	# def selectall(self):
+	# 	"""
+	# 	selects all children and checks all are checked and marks their status as True
   
-  		@params:self
-		@returns:None
-  		"""
+  	# 	@params:self
+	# 	@returns:None
+  	# 	"""
 		
-		children = self.get("h_and_t_table")
-		if not children:
-			return
-		value = not children[0].check
-		count = 0
-		for child in children:
-			child.check = value
-			# count+=1
-			# if count == 200:
-			# 	break
+	# 	children = self.get("h_and_t_table")
+	# 	if not children:
+	# 		return
+	# 	value = not children[0].check
+	# 	# count = 0
+	# 	for child in children:
+	# 		child.check = value
+	# 		# count+=1
+	# 		# if count == 200:
+	# 		# 	break
 
    
 	#To get data into H and T Invisible table
@@ -98,7 +98,7 @@ class HandTBilling(Document):
 		# frappe.publish_progress(progress, title=_("Loading..."))
 		doc = frappe.db.get_list("Cane Weight",
 										filters={"docstatus": 1,"date": ["between", [self.from_date, self.to_date]],"season" : self.season ,"branch" : self.branch ,"h_and_t_billing_status":False},
-										fields=["harvester_contract","harvester_code","transporter_code","harvester_name","transporter_name","contract_id","distance","actual_weight","vehicle_type","cart_number","route_name","name"],)
+										fields=["harvester_contract","harvester_code","transporter_code","harvester_name","transporter_name","contract_id","distance","harvester_weight","transporter_weight","vehicle_type","cart_number","route_name","name"],)
 		
 
 		
@@ -115,8 +115,8 @@ class HandTBilling(Document):
 						"contract_id":d.harvester_contract,
 						"distance":distance_km if distance_km else frappe.throw(f"<b>Distance cannot be 0. Set Distance for Route Code {d.route_name}</b>"),
 						"distance_amt":round(float(self.get_rate(distance_km,str(d.vehicle_type),"Harvester")),3) if (self.get_rate(distance_km,str(d.vehicle_type),"Harvester")) else frappe.throw(f"Please create the rate chart for vehicle type '{d.vehicle_type}' in Harvester Rate Chart"),
-						"weight":round((d.actual_weight),3),
-						"total":round((float(d.actual_weight)*float(self.get_rate(distance_km,str(d.vehicle_type),"Harvester"))),3) if (self.get_rate(distance_km,str(d.vehicle_type),"Harvester")) else frappe.throw(f"Please create the rate chart for vehicle type  '{d.vehicle_type}' in Harvester Rate Chart"),
+						"weight":round((d.harvester_weight),3),
+						"total":round((float(d.harvester_weight)*float(self.get_rate(distance_km,str(d.vehicle_type),"Harvester"))),3) if (self.get_rate(distance_km,str(d.vehicle_type),"Harvester")) else frappe.throw(f"Please create the rate chart for vehicle type  '{d.vehicle_type}' in Harvester Rate Chart"),
 						"vehicle_type":d.vehicle_type,
 						"cartno":d.cart_number,
 						"other_id":d.contract_id,
@@ -133,8 +133,8 @@ class HandTBilling(Document):
 						"contract_id":d.contract_id,	
 						"distance":distance_km if distance_km else frappe.throw(f"Distance cannot be 0. Set Distance for Route Code {d.route_name}"),
 						"distance_amt":round((float(self.get_rate(distance_km,str(d.vehicle_type),"Transporter"))),3) if (self.get_rate(distance_km,str(d.vehicle_type),"Transporter")) else frappe.throw(f"Please create the rate chart for vehicle type  '{d.vehicle_type}' in Transporter Rate Chart"),
-						"weight":round((d.actual_weight),3),
-						'total':round(d.actual_weight*float(self.get_rate(distance_km,str(d.vehicle_type),"Transporter")),3) if (self.get_rate(distance_km,str(d.vehicle_type),"Transporter")) else frappe.throw(f"Please create the rate chart for vehicle type  '{d.vehicle_type}' in Transporter Rate Chart"),
+						"weight":round((d.transporter_weight),3),
+						'total':round(d.transporter_weight*float(self.get_rate(distance_km,str(d.vehicle_type),"Transporter")),3) if (self.get_rate(distance_km,str(d.vehicle_type),"Transporter")) else frappe.throw(f"Please create the rate chart for vehicle type  '{d.vehicle_type}' in Transporter Rate Chart"),
 						"vehicle_type":d.vehicle_type,
 						"cartno":d.cart_number,
 						"other_id":d.harvester_contract,
@@ -188,7 +188,7 @@ class HandTBilling(Document):
 				data_calculation_dict[str_create]["total"]+=round(float(index.total),2)
 				data_calculation_dict[str_create]["total_weight"]+=round(float(index.weight),2)
 			
-    
+		# frappe.throw(str(data_calculation_dict))
 		#To get deduction amount and payable amount below code is returned
 		tds_per_with_pan=0
 		tds_per_without_pan=0
@@ -240,6 +240,7 @@ class HandTBilling(Document):
 			# frappe.publish_progress(progress, title=_("Loading..."))
 			# frappe.msgprint(f"<b>Iteration: </b>{iteration}")
 			# iteration = iteration + 1
+			# frappe.throw(str(data_calculation_dict[d]["type"]))
 			sales_invoice_deduction_amt=0
 			sales_invoice_deduction_store_material_amt = 0
 			bullock_cart_advance=0
@@ -633,9 +634,9 @@ class HandTBilling(Document):
 			if self.include_penalty_charges:
 					# frappe.msgprint(f"<b>contract_dict: </b> {contract_dict}")
 					panalty = frappe.get_all("Deduction Form",
-																	filters={"farmer_code":data_calculation_dict[d]["vender_id"],"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch },
-																	fields=["farmer_code", "account", "name", "deduction_amount","deduction_name","paid_amount" ,"h_and_t_contract_id","farmer_application_loan_id"],)
-					penalty_deuction_li=[{"Farmer Code": o_d.farmer_code,"Penalty Amount": round((float(o_d.deduction_amount) - float(o_d.paid_amount))),"Account": o_d.account,"DFN": o_d.name,"Contract Id":o_d.h_and_t_contract_id}for o_d in panalty if ((not o_d.farmer_application_loan_id) and frappe.get_value("Deduction Type",o_d.deduction_name,"is_penalty_deduction"))]
+																	filters={"farmer_code":data_calculation_dict[d]["vender_id"],"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"vender_type":str(data_calculation_dict[d]["type"]) },
+																	fields=["farmer_code", "account", "name", "deduction_amount","deduction_name","paid_amount" ,"h_and_t_contract_id","farmer_application_loan_id","vender_type"],)
+					penalty_deuction_li=[{"Farmer Code": o_d.farmer_code,"Penalty Amount": round((float(o_d.deduction_amount) - float(o_d.paid_amount))),"Account": o_d.account,"DFN": o_d.name,"Contract Id":o_d.h_and_t_contract_id,"Vender Type":o_d.vender_type}for o_d in panalty if ((not o_d.farmer_application_loan_id) and frappe.get_value("Deduction Type",o_d.deduction_name,"is_penalty_deduction"))]
 					other_ded=[]
 					if int(len(contract_dict[str(data_calculation_dict[d]["contract_id"])]))>1:
 						for i in range(len(contract_dict[str(data_calculation_dict[d]["contract_id"])])):
@@ -653,7 +654,8 @@ class HandTBilling(Document):
 													j["Penalty Amount"]=j["Penalty Amount"]-k["Penalty Amount"]
 										penalty_deuction_li = [m for m in penalty_deuction_li if m["Penalty Amount"] != 0]
 					penalty_charge=sum(float(g["Penalty Amount"]) for g in penalty_deuction_li)
-			total_deduction = (sales_invoice_deduction_amt+ sales_invoice_deduction_store_material_amt+ loan_installment_amt+ loan_interest_amt+other_deductions_amt+round(float(tds_deduction_amt_trs),2)+round(float(sd_dedution_amt_trs))+round(float(hire_ded_amt))+round(float(penalty_charge)))
+					
+			total_deduction = (sales_invoice_deduction_amt+ sales_invoice_deduction_store_material_amt+ loan_installment_amt+ loan_interest_amt+other_deductions_amt+round(float(tds_deduction_amt_trs))+round(float(sd_dedution_amt_trs))+round(float(hire_ded_amt))+round(float(penalty_charge)))
 			total_amt=data_calculation_dict[d]["total"]
 			payable_amt=total_amt-total_deduction
 			if(payable_amt>=0):
@@ -837,7 +839,7 @@ class HandTBilling(Document):
 			if hire_charge_amt:
 				data_calculation_dict[d]["remaining_hire"]=hire_charge_amt-hire_ded_amt
 			data_calculation_dict[d]["all_deduction_information"]=str(sales_invoices)+str(loan_installment)+str(loan_installment_intrest)+str(other_deduction_dict)+str(tds_ded_list_tras)+str(sd_ded_list_tr)+str(hire_cherge_list)+str(penalty_deuction_li)+str(sales_invoices_store)+str(bullock_cart_advance_dict)+str(hrt_machine_advance_dict)+str(transporter_advance_dict)
-			frappe.msgprint(str(data_calculation_dict[d]["all_deduction_information"]))
+			# frappe.msgprint(str(data_calculation_dict[d]["all_deduction_information"]))
 			if(data_calculation_dict[d]["vehicle_type"]=="BULLOCK CART" and data_calculation_dict[d]["type"]=="Harvester" and data_calculation_dict[d]["transporter"]==data_calculation_dict[d]["vender_id"]):
 				if data_calculation_dict[d]["temp_str"]:
 					temp_str=data_calculation_dict[d]["temp_str"]
@@ -1753,6 +1755,7 @@ class HandTBilling(Document):
 			# frappe.throw(str(lst3))
 			je.insert()
 			je.custom_h_and_t_billing_id = self.name
+			je.user_remark = self.narration
 			je.save()
 			self.journal_entry_id = str(je.name)
 			je.save()

@@ -114,7 +114,13 @@ frappe.ui.form.on('H and T Billing', {
     refresh: function(frm) {
         $('.layout-side-section').hide();
         $('.layout-main-section-wrapper').css('margin-left', '0');
-    }
+    },
+	purpose: async function(frm){
+		if(frm.doc.purpose){
+			const narration = await frappe.db.get_value("Standard Naration",{"name":frm.doc.purpose},"narration")
+			frm.set_value("narration",narration["message"]["narration"])
+		}
+	}
 });
 
 // frappe.ui.form.on('H and T Billing', {

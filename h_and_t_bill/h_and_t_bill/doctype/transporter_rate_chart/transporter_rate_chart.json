@@ -11,6 +11,7 @@
  "field_order": [
   "season",
   "vehicle_type",
+  "gang_type",
   "column_break_hmzzf",
   "branch",
   "per_km_rate",
@@ -83,12 +84,18 @@
    "fieldname": "get_rate_chart",
    "fieldtype": "Attach",
    "label": "Get Rate Chart"
+  },
+  {
+   "fieldname": "gang_type",
+   "fieldtype": "Link",
+   "label": "Gang Type",
+   "options": "Gang Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-21 13:25:36.524311",
+ "modified": "2024-08-27 11:45:46.635062",
  "modified_by": "Administrator",
  "module": "H And T Bill",
  "name": "Transporter Rate Chart",
