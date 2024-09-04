@@ -438,9 +438,9 @@ class HandTBilling(Document):
 						sd_dedution_amt_trs=total_amt_sd_cal_har*security_per/100
 						sd_ded_list_tr=[{"Farmer Code": data_calculation_dict[d]["vender_id"],"SD Deduction Amount":round(float(sd_dedution_amt_trs)),"Account": security_aacount,"Contract Id":data_calculation_dict[d]["contract_id"],"Deduction Name":"Security Deposit"}]
 			other_deductions = frappe.get_all("Deduction Form",
-																	filters={"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]] },
+																	filters={"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]],"vender_type":data_calculation_dict[d]["type"]},
 																	fields=["farmer_code", "account", "name", "deduction_amount","paid_amount" ,"h_and_t_contract_id", "farmer_application_loan_id","interest_calculate_on_amount", "rate_of_interest" , "from_date_interest_calculation","interest_account" ,"update_from_date_interest_calculation","deduction_name"],)
-			# frappe.msgprint(f"<b>Other_deductions: </b> {other_deductions}")
+			frappe.msgprint(f"<b>Other_deductions: </b> {other_deductions}")
 			if self.includes_loan_interest:
 				
 				loan_installment_intrest = [{
