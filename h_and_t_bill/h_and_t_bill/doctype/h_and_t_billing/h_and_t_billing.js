@@ -28,8 +28,10 @@ frappe.ui.form.on('H and T Billing', {
 		do_billing_btn.css({
 			"background-color": "#007bff",
 			"color": "white",
-			"padding":"0.53rem"
-		})
+			"padding": "0.53rem",
+			
+		});
+		
 	}
 });
 

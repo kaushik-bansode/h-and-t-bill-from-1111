@@ -107,7 +107,7 @@
   {
    "fieldname": "other_deductions",
    "fieldtype": "Currency",
-   "label": "Other Deduction"
+   "label": "Advance Deduction"
   },
   {
    "fieldname": "lone_deduction",
@@ -269,7 +269,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-08-24 14:27:17.607732",
+ "modified": "2024-09-10 09:55:53.885758",
  "modified_by": "Administrator",
  "module": "H And T Bill",
  "name": "Child H and T Calculation",

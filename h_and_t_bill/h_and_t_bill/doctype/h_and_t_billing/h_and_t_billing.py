@@ -247,6 +247,9 @@ class HandTBilling(Document):
 			hrt_machine_advance=0
 			transporter_advance=0
 			other_deductions_amt=0
+			bullock_cart_advance_amt = 0
+			hrt_machine_advance_amt = 0
+			transporter_advance_amt = 0
 			other_deductions=""
 			loan_installment_amt=0
 			loan_interest_amt=0
@@ -266,6 +269,9 @@ class HandTBilling(Document):
 			sd_ded_list_tr=[]
 			sales_invoices = []
 			other_deduction_dict =[]
+			bullock_cart_advance_dict = []
+			hrt_machine_advance_dict = []
+			transporter_advance_dict = []
 			loan_installment=[]
 			loan_installment_intrest=[]
 			all_deduction = []
@@ -342,17 +348,7 @@ class HandTBilling(Document):
 						hire_account=""
 						hire_charge=frappe.get_all("Branch",filters={'name':self.branch},
 													fields=["vehiclec","vehicled","hire_charge1","hire_charge_2","hire_charge_account"])
-					# 	hire_charge =frappe.db.sql(f"""
-					# 	SELECT 
-					# 		vehiclec,
-					# 		vehicled,
-					# 		hire_charge1,
-					# 		hire_charge_2,
-					# 		hire_charge_account
-					# 	FROM `tabBranch`
-					# 	WHERE 
-					# 		name = '{self.branch}'
-					# """,as_dict=True)
+					
 						for i in hire_charge:
 							vehicle_1=str(i.vehiclec) if(i.vehiclec) else frappe.throw("Please set the Vehicle type on which hire charge will apply")
 							vehicle_charge1=i.hire_charge1 if(i.hire_charge1 or i.hire_charge1==0 ) else frappe.throw(f"Please set the hire charge for vehicle {vehicle_1} ")
@@ -365,38 +361,46 @@ class HandTBilling(Document):
 												fields=["name"],)
 						# frappe.msgprint(f"<b>Hire Charge Vehicle: </b>{vehicle}")
 						for i in vehicle:
-							chart_table = frappe.get_all("Vehicle Registration item",filters={"parent":i.name},fields=["cart_no","updated_issue","issue_date"])
+							updated_hire_amt = 0
+							chart_table = frappe.get_all("Vehicle Registration item",filters={"parent": i.name},fields=["cart_no", "updated_issue", "issue_date"])
+							# frappe.msgprint(str(chart_table))
 							for rows in chart_table:
-								if str(rows.cart_no)==str(cart_no):
-									if(rows.updated_issue):
-										chart_no_list.append(str(i.name))
-										chart_no_list.append(str(cart_no))
-										date1 = datetime.strptime(str(rows.updated_issue), '%Y-%m-%d')
-										date2 = datetime.strptime(str(self.to_date), '%Y-%m-%d')
-										delta = date2 - date1 - timedelta(days=1)
-										days = delta.days 
-									else:
-										issue_date=rows.issue_date if(rows.issue_date) else frappe.throw(f"Please set the Vehicle Issue date in Vehicle Registration for Contract {data_calculation_dict[d]['contract_id']}")
-										chart_no_list.append(str(i.name))
-										chart_no_list.append(str(cart_no))
-										date1 = datetime.strptime(str(issue_date), '%Y-%m-%d')
-										date2 = datetime.strptime(str(self.to_date), '%Y-%m-%d')
-										delta = date2 - date1 - timedelta(days=1)
-										days = delta.days
-						count=0
-						if  data_calculation_dict[d]["vehicle_type"]==vehicle_1:
-							hire_ded_amt=vehicle_charge1*days
-							count=1
-						if  data_calculation_dict[d]["vehicle_type"]==vehicle_2:
-							hire_ded_amt=vehicle_charge2*days
-							count=1
-						if count==1:
-							data_calculation_dict[d]["cart_no_list"]=str(chart_no_list)
-							data_calculation_dict[d]["hire_acc"]=str(hire_account)
-							hire_charge_amt=hire_ded_amt
-							hire_cherge_list=[{"Farmer Code": data_calculation_dict[d]["vender_id"],"Hire Charge Amount": round(float(hire_ded_amt)),"Account": hire_account,"Contract Id":data_calculation_dict[d]["contract_id"],"Deduction Name":"Hire Charge"}] 
-						# frappe.msgprint(f"<b>For Hire Charges: </b> vehicle_1: {vehicle_1}, vehicle_2: {vehicle_2}, vehicle_charge1: {vehicle_charge1}, vehicle_charge2: {vehicle_charge2}, hire_account: {hire_account}, days: {days}, cart_no:{cart_no}, hire_charge_amt: {hire_charge_amt}")	
-							
+								# if str(rows.cart_no)==str(cart_no):
+								if(rows.updated_issue >= rows.issue_date): 
+									chart_no_list.append(str(i.name))
+									chart_no_list.append(str(cart_no))
+									date1 = datetime.strptime(str(rows.updated_issue), '%Y-%m-%d')
+									date2 = datetime.strptime(str(self.to_date), '%Y-%m-%d')
+									delta = date2 - date1
+									days = delta.days
+									# frappe.msgprint(f"greater {days}")
+
+								else:
+									issue_date=rows.issue_date if(rows.issue_date) else frappe.throw(f"Please set the Vehicle Issue date in Vehicle Registration for Contract {data_calculation_dict[d]['contract_id']}")
+									chart_no_list.append(str(i.name))
+									chart_no_list.append(str(cart_no))
+									date1 = datetime.strptime(str(issue_date), '%Y-%m-%d')
+									date2 = datetime.strptime(str(self.to_date), '%Y-%m-%d')
+									delta = date2 - date1
+									days = delta.days + 1
+									# frappe.msgprint(f"lesser {days}")
+								count=0
+								if  data_calculation_dict[d]["vehicle_type"]==vehicle_1:
+									hire_ded_amt=vehicle_charge1*days
+									count=1
+								if  data_calculation_dict[d]["vehicle_type"]==vehicle_2:
+									hire_ded_amt=vehicle_charge2*days
+									count=1
+								if count==1:
+									data_calculation_dict[d]["cart_no_list"]=str(chart_no_list)
+									data_calculation_dict[d]["hire_acc"]=str(hire_account)
+									hire_charge_amt=hire_ded_amt
+									updated_hire_amt+=hire_ded_amt
+						hire_ded_amt = updated_hire_amt
+						hire_cherge_list=[{"Farmer Code": data_calculation_dict[d]["vender_id"],"Hire Charge Amount": round(float(hire_ded_amt)),"Account": hire_account,"Contract Id":data_calculation_dict[d]["contract_id"],"Deduction Name":"Hire Charge"}] 
+
+      # frappe.msgprint(f"<b>For Hire Charges: </b> vehicle_1: {vehicle_1}, vehicle_2: {vehicle_2}, vehicle_charge1: {vehicle_charge1}, vehicle_charge2: {vehicle_charge2}, hire_account: {hire_account}, days: {days}, cart_no:{cart_no}, hire_charge_amt: {hire_charge_amt}")	
+							# frappe.msgprint(str(hire_ded_updated_amount))
 				#To calculate SD deduction amount for Transporter
 				if self.include_security_deposite:
 					# if data_calculation_dict[d]["vehicle_type"]!=str(vehicleA) and  data_calculation_dict[d]["vehicle_type"]!=str(vehicleB):
@@ -440,7 +444,7 @@ class HandTBilling(Document):
 			other_deductions = frappe.get_all("Deduction Form",
 																	filters={"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]],"vender_type":data_calculation_dict[d]["type"]},
 																	fields=["farmer_code", "account", "name", "deduction_amount","paid_amount" ,"h_and_t_contract_id", "farmer_application_loan_id","interest_calculate_on_amount", "rate_of_interest" , "from_date_interest_calculation","interest_account" ,"update_from_date_interest_calculation","deduction_name"],)
-			frappe.msgprint(f"<b>Other_deductions: </b> {other_deductions}")
+			# frappe.msgprint(f"<b>Other_deductions: </b> {other_deductions}")
 			if self.includes_loan_interest:
 				
 				loan_installment_intrest = [{

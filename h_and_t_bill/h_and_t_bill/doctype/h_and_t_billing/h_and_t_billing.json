@@ -32,6 +32,7 @@
   "show_list",
   "column_break_4qpbs",
   "select_all",
+  "do_billing",
   "column_break_i8otr",
   "column_break_gcgw9",
   "column_break_ounss",
@@ -42,9 +43,10 @@
   "section_break_lgqma",
   "h_and_t_table",
   "section_break_b9fs3",
-  "do_billing",
   "section_break_tsbtf",
+  "tab_break_g2jfu",
   "child_h_and_t_invisible",
+  "calculation_table_tab",
   "section_break_4vr7z",
   "calculation_table",
   "section_break_m3fha",
@@ -425,6 +427,16 @@
    "fieldtype": "Link",
    "label": "Purpose",
    "options": "Standard Naration"
+  },
+  {
+   "fieldname": "calculation_table_tab",
+   "fieldtype": "Tab Break",
+   "label": "Calculation Table"
+  },
+  {
+   "fieldname": "tab_break_g2jfu",
+   "fieldtype": "Tab Break",
+   "label": "Child H and T invisible"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -435,7 +447,7 @@
    "link_fieldname": "custom_h_and_t_billing_id"
   }
  ],
- "modified": "2024-08-30 13:25:28.435203",
+ "modified": "2024-09-10 10:12:12.344117",
  "modified_by": "Administrator",
  "module": "H And T Bill",
  "name": "H and T Billing",
