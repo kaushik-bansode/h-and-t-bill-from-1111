@@ -32,9 +32,9 @@
   "show_list",
   "column_break_4qpbs",
   "select_all",
-  "do_billing",
   "column_break_i8otr",
   "column_break_gcgw9",
+  "do_billing",
   "column_break_ounss",
   "column_break_uljsl",
   "column_break_q2afk",
@@ -447,7 +447,7 @@
    "link_fieldname": "custom_h_and_t_billing_id"
   }
  ],
- "modified": "2024-09-10 10:12:12.344117",
+ "modified": "2024-09-10 16:56:10.447050",
  "modified_by": "Administrator",
  "module": "H And T Bill",
  "name": "H and T Billing",

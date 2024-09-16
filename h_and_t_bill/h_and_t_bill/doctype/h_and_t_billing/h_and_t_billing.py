@@ -286,9 +286,9 @@ class HandTBilling(Document):
 			hire_ded_amt=0	
 			if(str(data_calculation_dict[d]["contract_id"]) not in contract_dict):
 				contract_dict[str(data_calculation_dict[d]["contract_id"])]=[d]
-				# # frappe.msgprint("hello"+str(contract_dict))
 			else:
 				contract_dict[str(data_calculation_dict[d]["contract_id"])].append(d)
+			# frappe.msgprint(str(contract_dict))
 			# frappe.msgprint('data_calculation_dict[d]["total"] '+str(data_calculation_dict[d]["total"]))
 			# frappe.msgprint('data_calculation_dict[d] '+str(data_calculation_dict[d]))
 			if(data_calculation_dict[d]["type"]=="Transporter"):
@@ -366,6 +366,8 @@ class HandTBilling(Document):
 							# frappe.msgprint(str(chart_table))
 							for rows in chart_table:
 								# if str(rows.cart_no)==str(cart_no):
+								if not rows.issue_date or not rows.updated_issue:
+									frappe.throw(f"issue date missing for <a href='http://182.74.29.227:1111/app/vehicle-registration/{i.name}'><b>{i.name}</b></a> in vehicle Registration")
 								if(rows.updated_issue >= rows.issue_date): 
 									chart_no_list.append(str(i.name))
 									chart_no_list.append(str(cart_no))
@@ -442,11 +444,11 @@ class HandTBilling(Document):
 						sd_dedution_amt_trs=total_amt_sd_cal_har*security_per/100
 						sd_ded_list_tr=[{"Farmer Code": data_calculation_dict[d]["vender_id"],"SD Deduction Amount":round(float(sd_dedution_amt_trs)),"Account": security_aacount,"Contract Id":data_calculation_dict[d]["contract_id"],"Deduction Name":"Security Deposit"}]
 			other_deductions = frappe.get_all("Deduction Form",
-																	filters={"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]],"vender_type":data_calculation_dict[d]["type"]},
+																	filters={"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]],"vender_type":data_calculation_dict[d]["type"]}, 
 																	fields=["farmer_code", "account", "name", "deduction_amount","paid_amount" ,"h_and_t_contract_id", "farmer_application_loan_id","interest_calculate_on_amount", "rate_of_interest" , "from_date_interest_calculation","interest_account" ,"update_from_date_interest_calculation","deduction_name"],)
 			# frappe.msgprint(f"<b>Other_deductions: </b> {other_deductions}")
 			if self.includes_loan_interest:
-				
+       
 				loan_installment_intrest = [{
 												"Farmer Loan ID": o_i.farmer_application_loan_id,
 												"Farmer ID": o_i.farmer_code,
@@ -512,7 +514,7 @@ class HandTBilling(Document):
 											if(j["Sales invoice ID"] == k["Sales invoice ID"] ):
 												j["Outstanding Amount"]=j["Outstanding Amount"]-k["Outstanding Amount"]		
 									sales_invoices = [m for m in sales_invoices if m["Outstanding Amount"] != 0]
-									# frappe.msgprint(f"<b>{sales_invoices}</b>")
+			
 				# frappe.msgprint(f"<b>sales_invoices:</b> {sales_invoices}")
 				sales_invoice_deduction_amt= sum(float(d["Outstanding Amount"]) for d in sales_invoices)  # calculating sum of all sales invoice	
 				
@@ -538,6 +540,11 @@ class HandTBilling(Document):
 				sales_invoice_deduction_store_material_amt = sum(float(d["Outstanding Amount"]) for d in sales_invoices_store)
 
 			if self.other_deduction:
+				if int(len(contract_dict[str(data_calculation_dict[d]["contract_id"])]))>1:
+					# frappe.msgprint(str(other_deductions))
+					other_deductions = frappe.get_all("Deduction Form",
+																	filters={"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]],"vender_type":"Transporter"}, 
+																	fields=["farmer_code", "account", "name", "deduction_amount","paid_amount" ,"h_and_t_contract_id", "farmer_application_loan_id","interest_calculate_on_amount", "rate_of_interest" , "from_date_interest_calculation","interest_account" ,"update_from_date_interest_calculation","deduction_name"],)
 				other_deduction_dict=[{"Farmer Code": o_d.farmer_code,"Deduction Amount": round((float(o_d.deduction_amount) - float(o_d.paid_amount))),"Account": o_d.account,"DFN": o_d.name,"Contract Id":o_d.h_and_t_contract_id,"Deduction Type":o_d.deduction_name}for o_d in other_deductions if not o_d.farmer_application_loan_id ]
 				other_ded=[]
 				if int(len(contract_dict[str(data_calculation_dict[d]["contract_id"])]))>1:
@@ -556,7 +563,7 @@ class HandTBilling(Document):
 												j["Deduction Amount"]=j["Deduction Amount"]-k["Deduction Amount"]
 									other_deduction_dict = [m for m in other_deduction_dict if m["Deduction Amount"] != 0]
 				other_deductions_amt=sum(float(g["Deduction Amount"]) for g in other_deduction_dict)
-				# frappe.msgprint(f"<b>other_deductions_amt: </b>{other_deductions_amt}")
+				# frappe.msgprint(f"<b>other_deduction_dict: </b>{other_deduction_dict}")			
     
 				bullock_cart_advance_dict=[{"Farmer Code": o_d.farmer_code,"Deduction Amount": round((float(o_d.deduction_amount) - float(o_d.paid_amount))),"Account": o_d.account,"DFN": o_d.name,"Contract Id":o_d.h_and_t_contract_id,"Deduction Type":o_d.deduction_name}for o_d in other_deductions if not o_d.farmer_application_loan_id and o_d.deduction_name == "Bullock Cart Advance"]
 				bullock_cart_advance = []
@@ -662,6 +669,7 @@ class HandTBilling(Document):
 			total_deduction = (sales_invoice_deduction_amt+ sales_invoice_deduction_store_material_amt+ loan_installment_amt+ loan_interest_amt+other_deductions_amt+round(float(tds_deduction_amt_trs))+round(float(sd_dedution_amt_trs))+round(float(hire_ded_amt))+round(float(penalty_charge)))
 			total_amt=data_calculation_dict[d]["total"]
 			payable_amt=total_amt-total_deduction
+			frappe.msgprint(f"<b>{total_deduction}</b>")
 			if(payable_amt>=0):
 				data_calculation_dict[d]["deduction"]=round(float(total_deduction))
 			else:
@@ -674,7 +682,7 @@ class HandTBilling(Document):
 				# frappe.msgprint(f"total_amt: {total_amt}")
 				# frappe.msgprint(str(all_deduction))
 				total_of_h_t=total_amt
-				
+
 				while float(total_of_h_t) <= float(total_deduction):
 						# frappe.msgprint(str(all_deduction))
 					if len(all_deduction)>=1:
@@ -734,6 +742,7 @@ class HandTBilling(Document):
 						# frappe.msgprint(f"while total_deduction(total_sum): {total_deduction}")
 						# frappe.msgprint(f"total_payble: {total_payable} = {total_of_h_t} - {total_deduction}")
 							# frappe.msgprint("=========================================================")
+						# frappe.msgprint(f"deducted amount: {all_deduction}")
 					else:
 						break
 				contains_key = next((key for key in ["Outstanding Amount","Installment Amount","Installment Interest Amount","Deduction Amount","Hire Charge Amount","Penalty Amount"] if key in last_poped_entry),None,)
@@ -743,6 +752,7 @@ class HandTBilling(Document):
 					total_payable = 0
 					last_poped_entry["Outstanding Amount"] = new_outstanding_amount
 					all_deduction.append(last_poped_entry)
+				# frappe.msgprint(f"<b>{new_outstanding_amount} {total_deduction} {last_poped_entry}</b>")
      
 				if (str(contains_key)) == "Outstanding Amount" and last_poped_entry.get("Sale Type") == "Store Material":
 					new_outstanding_amount = round(float(total_payable))
@@ -785,6 +795,7 @@ class HandTBilling(Document):
 					total_payable = 0
 					last_poped_entry["Deduction Amount"] = new_other_deduction_amount
 					all_deduction.append(last_poped_entry)
+					
      
 				if (str(contains_key)) == "Deduction Amount" and  last_poped_entry.get("Deduction Type") == "HRT Machine Advance":
 					new_other_deduction_amount = round(float(total_payable))
@@ -1738,15 +1749,15 @@ class HandTBilling(Document):
 									"branch":self.branch
 								
 								},)
-		lst1 = [{"debit":j.debit_in_account_currency,"account":j.account,"contract_id":j.contract_id} for j in je.accounts]
-		lst2 = [{"credit":j.credit_in_account_currency,"account":j.account,"contract_id":j.contract_id} for j in je.accounts]
-		lst3 = []
-		for i in range(0,len(lst1)):
-			if lst1[i]["debit"]:
-				lst3.append(lst1[i])
+		# lst1 = [{"debit":j.debit_in_account_currency,"account":j.account,"contract_id":j.contract_id} for j in je.accounts]
+		# lst2 = [{"credit":j.credit_in_account_currency,"account":j.account,"contract_id":j.contract_id} for j in je.accounts]
+		# lst3 = []
+		# for i in range(0,len(lst1)):
+		# 	if lst1[i]["debit"]:
+		# 		lst3.append(lst1[i])
 				
-			if lst2[i]["credit"]:
-				lst3.append(lst2[i])
+		# 	if lst2[i]["credit"]:
+		# 		lst3.append(lst2[i])
 		# lst2 = []
 		# for i in je.accounts:
 		# 	lst1.append(i.debit_in_account_currency)
