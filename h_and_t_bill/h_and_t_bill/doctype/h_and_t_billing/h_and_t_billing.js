@@ -31,6 +31,10 @@ frappe.ui.form.on('H and T Billing', {
 			"padding": "0.53rem",
 			
 		});
+
+		frm.add_custom_button(__('Do Billing'), function() {
+            frm.trigger('do_billing');
+        }).addClass('btn-primary');
 		
 	}
 });

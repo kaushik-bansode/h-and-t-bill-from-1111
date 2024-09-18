@@ -8,24 +8,12 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import nowdate
 from datetime import datetime,timedelta
+
 class HandTBilling(Document):
-    
-	"""
-    H and T billing class
-    """
     #To get data into H & T Table after clicking show list button 
     #we get Unique record of H and T from cane weight page
 	@frappe.whitelist()
 	def get_data(self):
-		"""
-		At first we get all document list having docstatus 1 those are between selected dates and season from Cane Weight Doctype
-		After that it fetches unique transporter_code from list and append it to trans_list and vendor_list variables
-		After that it fetches unique harvestor_code and append it to trans_list and vendor_list variables
-		And then it appends all uniquely fetched data to h_and_t child table 
-  
-		@params:self
-		@returns:None
-		"""
 		har_list=[]
 		trans_list=[]
 		vendor_list=[]
@@ -59,43 +47,9 @@ class HandTBilling(Document):
 							"contract_id":vendor_list[index]["contract_id"],
 						}
 					)   
-		
-	#To select all venders after clicking select all
-	# @frappe.whitelist()
-	# def selectall(self):
-	# 	"""
-	# 	selects all children and checks all are checked and marks their status as True
-  
-  	# 	@params:self
-	# 	@returns:None
-  	# 	"""
-		
-	# 	children = self.get("h_and_t_table")
-	# 	if not children:
-	# 		return
-	# 	value = not children[0].check
-	# 	# count = 0
-	# 	for child in children:
-	# 		child.check = value
-	# 		# count+=1
-	# 		# if count == 200:
-	# 		# 	break
 
-   
-	#To get data into H and T Invisible table
-	#all record of H and T get collected from from_date to to_date
 	@frappe.whitelist()
 	def get_all_data_calcalation(self):
-		
-		"""
-  		It calculates all required data such as deduction, diesel allocation, amount collection
-    	according to respective vendor type
-     
-		@params:self
-		@returns:None
-    	"""
-		# progress = 1
-		# frappe.publish_progress(progress, title=_("Loading..."))
 		doc = frappe.db.get_list("Cane Weight",
 										filters={"docstatus": 1,"date": ["between", [self.from_date, self.to_date]],"season" : self.season ,"branch" : self.branch ,"h_and_t_billing_status":False},
 										fields=["harvester_contract","harvester_code","transporter_code","harvester_name","transporter_name","contract_id","distance","harvester_weight","transporter_weight","vehicle_type","cart_number","route_name","name"],)
@@ -147,7 +101,6 @@ class HandTBilling(Document):
 		data_calculation_dict={}
 		str_create=""
 		for index in self.get("child_h_and_t_invisible"):
-			# frappe.publish_progress(progress, title=_("Loading..."))
 			str_create=index.vender_id+""+index.type+""+index.contract_id+""+index.other_id
 			if str_create not in data_calculation_dict:
 				data_calculation_dict[str_create]={
@@ -198,17 +151,13 @@ class HandTBilling(Document):
 		vehicle2=""
 		security_aacount=0
 		security_per=0
-		vehicleA=""
-		vehicleB=""
+		# vehicleA=""
+		# vehicleB=""
 		if self.include_tds:
 			# frappe.msgprint("<b>Branch Data for TDS</b>")
 			tds=frappe.get_all("Branch",filters={'name':self.branch},
 												fields=["tds_percentage_value_with","tds_percentage_value_without","tds_account","max_vehicle_limit","vehicle","vehicle1"])
-			# tds = frappe.db.sql(f"""
-            #            SELECT tds_percentage_value_with, tds_percentage_value_without, tds_account, max_vehicle_limit, vehicle, vehicle1
-            #            FROM `tabBranch`
-            #            WHERE name = '{self.branch}'
-            #            """,as_dict=True)
+		
 			for t in tds:
 				tds_per_with_pan=t.tds_percentage_value_with if(t.tds_percentage_value_with or t.tds_percentage_value_with==0) else frappe.throw("Please set the TDS Percantage Amount in Branch")
 				tds_per_without_pan=t.tds_percentage_value_without if(t.tds_percentage_value_without or t.tds_percentage_value_without==0) else frappe.throw("Please set the TDS Percantage Amount in Branch")
@@ -222,25 +171,17 @@ class HandTBilling(Document):
 		if self.include_security_deposite:
 			sd=frappe.get_all("Branch",filters={'name':self.branch},
 												fields=["vehiclea","vehicleb","security_deposit_account","security_deposite_amt"])
-			# sd = frappe.db.sql(f"""
-                      
-            #           SELECT vehiclea, vehicleb, security_deposit_account, security_deposite_amt
-            #           FROM `tabBranch`
-            #           WHERE name = '{self.branch}'
-            #           """,as_dict=True)
+			
 			for t in sd:
-				# vehicleA=t.vehiclea if(t.vehiclea) else frappe.throw("Please set the vehicle type in Branch for that SD will not apply")
-				# vehicleB=t.vehicleb if(t.vehicleb) else frappe.throw("Please set the vehicle type in Branch for that SD will not apply")
 				security_aacount=t.security_deposit_account if(t.security_deposit_account) else frappe.throw("Please set the Account for Security Deposit Percantage in Branch")
 				security_per=t.security_deposite_amt if(t.security_deposite_amt) else frappe.throw("Please set the SD Percentage in Branch")
 			# frappe.msgprint(f"<b>For SD(from Branch): </b> vehicleA: {vehicleA} , vehicleB: {vehicleB} , security_aacount: {security_aacount} security_per: {security_per}")
 		contract_dict={}
-		# iteration = 1 # mine
+		trans_vender_dict = {}
+		har_vender_dict = {}
+		
 		for d in data_calculation_dict:
-			# frappe.publish_progress(progress, title=_("Loading..."))
-			# frappe.msgprint(f"<b>Iteration: </b>{iteration}")
-			# iteration = iteration + 1
-			# frappe.throw(str(data_calculation_dict[d]["type"]))
+			abc = []
 			sales_invoice_deduction_amt=0
 			sales_invoice_deduction_store_material_amt = 0
 			bullock_cart_advance=0
@@ -288,6 +229,9 @@ class HandTBilling(Document):
 				contract_dict[str(data_calculation_dict[d]["contract_id"])]=[d]
 			else:
 				contract_dict[str(data_calculation_dict[d]["contract_id"])].append(d)
+
+			
+			
 			# frappe.msgprint(str(contract_dict))
 			# frappe.msgprint('data_calculation_dict[d]["total"] '+str(data_calculation_dict[d]["total"]))
 			# frappe.msgprint('data_calculation_dict[d] '+str(data_calculation_dict[d]))
@@ -307,17 +251,7 @@ class HandTBilling(Document):
 					cane_weight = frappe.get_all("Cane Weight",
                                                 filters={"docstatus": 1,"season" : self.season ,"branch" : self.branch,"h_and_t_billing_status":False,"transporter_code":data_calculation_dict[d]["vender_id"]},
                                                 fields=["vehicle_type","name"])
-					# frappe.msgprint(f"<b>Cane Weights: </b>{cane_weight}")
-					# cane_weight = frappe.db.sql(f"""
-					# 			SELECT vehicle_type
-					# 			FROM `tabCane Weight`
-					# 			WHERE 
-					# 				docstatus = 1 
-					# 			AND season = '{self.season}' 
-					# 			AND branch = '{self.branch}' 
-					# 			AND h_and_t_billing_status = false 
-					# 			AND transporter_code = '{data_calculation_dict[d]["vender_id"]}'
-                    #              """,as_dict=True)
+					
 					for c in cane_weight:
 						if(c.vehicle_type!=str(vehicle1) and c.vehicle_type!=str(vehicle2)):
 							weight_count+=1
@@ -445,7 +379,7 @@ class HandTBilling(Document):
 						sd_ded_list_tr=[{"Farmer Code": data_calculation_dict[d]["vender_id"],"SD Deduction Amount":round(float(sd_dedution_amt_trs)),"Account": security_aacount,"Contract Id":data_calculation_dict[d]["contract_id"],"Deduction Name":"Security Deposit"}]
 			other_deductions = frappe.get_all("Deduction Form",
 																	filters={"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]],"vender_type":data_calculation_dict[d]["type"]}, 
-																	fields=["farmer_code", "account", "name", "deduction_amount","paid_amount" ,"h_and_t_contract_id", "farmer_application_loan_id","interest_calculate_on_amount", "rate_of_interest" , "from_date_interest_calculation","interest_account" ,"update_from_date_interest_calculation","deduction_name"],)
+																	fields=["farmer_code", "account", "name", "deduction_amount","paid_amount" ,"h_and_t_contract_id", "farmer_application_loan_id","interest_calculate_on_amount", "rate_of_interest" , "from_date_interest_calculation","interest_account" ,"update_from_date_interest_calculation","deduction_name","gang_type"])
 			# frappe.msgprint(f"<b>Other_deductions: </b> {other_deductions}")
 			if self.includes_loan_interest:
        
@@ -488,7 +422,7 @@ class HandTBilling(Document):
 											if(j["Farmer Loan ID"] == k["Farmer Loan ID"] ):
 												j["Installment Interest Amount"]=j["Installment Interest Amount"]-k["Installment Interest Amount"]
 										loan_installment_intrest = [m for m in loan_installment_intrest if m["Installment Interest Amount"] != 0]
-					# # frappe.msgprint("hello")
+					# frappe.msgprint("hello")
 				loan_interest_amt = sum(float(m["Installment Interest Amount"]) for m in loan_installment_intrest)
 				
 			if self.includes_sales_invoice_deduction: 
@@ -540,31 +474,79 @@ class HandTBilling(Document):
 				sales_invoice_deduction_store_material_amt = sum(float(d["Outstanding Amount"]) for d in sales_invoices_store)
 
 			if self.other_deduction:
-				if int(len(contract_dict[str(data_calculation_dict[d]["contract_id"])]))>1:
-					# frappe.msgprint(str(other_deductions))
-					other_deductions = frappe.get_all("Deduction Form",
-																	filters={"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]],"vender_type":"Transporter"}, 
-																	fields=["farmer_code", "account", "name", "deduction_amount","paid_amount" ,"h_and_t_contract_id", "farmer_application_loan_id","interest_calculate_on_amount", "rate_of_interest" , "from_date_interest_calculation","interest_account" ,"update_from_date_interest_calculation","deduction_name"],)
-				other_deduction_dict=[{"Farmer Code": o_d.farmer_code,"Deduction Amount": round((float(o_d.deduction_amount) - float(o_d.paid_amount))),"Account": o_d.account,"DFN": o_d.name,"Contract Id":o_d.h_and_t_contract_id,"Deduction Type":o_d.deduction_name}for o_d in other_deductions if not o_d.farmer_application_loan_id ]
 				other_ded=[]
-				if int(len(contract_dict[str(data_calculation_dict[d]["contract_id"])]))>1:
-					for i in range(len(contract_dict[str(data_calculation_dict[d]["contract_id"])])):
-						if(str(d)!=str(contract_dict[str(data_calculation_dict[d]["contract_id"])][i])):
-							index=str(contract_dict[str(data_calculation_dict[d]["contract_id"])][i])
-							formatted_input = re.sub(r'\]\[', '],[', str(data_calculation_dict[index]["all_deduction_information"]))
-							formatted_input = '[' + formatted_input + ']'
-							parsed_list = ast.literal_eval(formatted_input)
-							if(len(parsed_list)>=8):
-								other_ded=parsed_list[3]
-								if(other_ded):
-									for j in other_deduction_dict:
-										for k in other_ded:
-											if(j["DFN"] == k["DFN"] ):
-												j["Deduction Amount"]=j["Deduction Amount"]-k["Deduction Amount"]
-									other_deduction_dict = [m for m in other_deduction_dict if m["Deduction Amount"] != 0]
+				if frappe.get_value("H and T Contract",str(data_calculation_dict[d]["contract_id"]),"gang_type") == "HARVESTING MACHINE":
+					
+					if (str(data_calculation_dict[d]["type"]) == "Transporter"):
+						other_deductions = frappe.get_all("Deduction Form",
+																filters={"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]],"vender_type":"Transporter"}, 
+																fields=["farmer_code", "account", "name", "deduction_amount","paid_amount" ,"h_and_t_contract_id", "farmer_application_loan_id","interest_calculate_on_amount", "rate_of_interest" , "from_date_interest_calculation","interest_account" ,"update_from_date_interest_calculation","deduction_name"])
+	
+						other_deduction_dict=[{"Farmer Code": o_d.farmer_code,"Deduction Amount": round((float(o_d.deduction_amount) - float(o_d.paid_amount))),"Account": o_d.account,"DFN": o_d.name,"Contract Id":o_d.h_and_t_contract_id,"Deduction Type":o_d.deduction_name}for o_d in other_deductions if not o_d.farmer_application_loan_id ]
+					
+						if str(data_calculation_dict[d]["vender_id"]) not in trans_vender_dict:
+							trans_vender_dict[str(data_calculation_dict[d]["vender_id"])] = []
+						last_item_idx = len(trans_vender_dict[str(data_calculation_dict[d]["vender_id"])])-1
+						if last_item_idx >= 0:
+							other_ded = trans_vender_dict[str(data_calculation_dict[d]["vender_id"])][last_item_idx]
+							if(other_ded):
+								for j in other_deduction_dict:
+									for k in other_ded:
+										if(j["DFN"] == k["DFN"]):
+											j["Deduction Amount"]=j["Deduction Amount"]-k["Deduction Amount"]
+								other_deduction_dict = [m for m in other_deduction_dict if m["Deduction Amount"] != 0]
+						
+						trans_vender_dict[str(data_calculation_dict[d]["vender_id"])].append(other_deduction_dict)
+      
+					elif str(data_calculation_dict[d]["type"]) == "Harvester":
+						other_deductions = frappe.get_all("Deduction Form",
+																filters={"h_and_t_contract_id":"2024-2025-6527","docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]],"vender_type":"Harvester"}, 
+																fields=["farmer_code", "account", "name", "deduction_amount","paid_amount" ,"h_and_t_contract_id", "farmer_application_loan_id","interest_calculate_on_amount", "rate_of_interest" , "from_date_interest_calculation","interest_account" ,"update_from_date_interest_calculation","deduction_name"])
+	
+						other_deduction_dict=[{"Farmer Code": o_d.farmer_code,"Deduction Amount": round((float(o_d.deduction_amount) - float(o_d.paid_amount))),"Account": o_d.account,"DFN": o_d.name,"Contract Id":o_d.h_and_t_contract_id,"Deduction Type":o_d.deduction_name}for o_d in other_deductions if not o_d.farmer_application_loan_id ]
+						if str(data_calculation_dict[d]["vender_id"]) not in har_vender_dict:
+							har_vender_dict[str(data_calculation_dict[d]["vender_id"])] = []
+						frappe.msgprint(f" sfsfsdfdsf{har_vender_dict[str(data_calculation_dict[d]['vender_id'])]}")
+						last_item_idx = len(har_vender_dict[str(data_calculation_dict[d]["vender_id"])])-1
+						if last_item_idx >= 0:
+							other_ded = har_vender_dict[str(data_calculation_dict[d]['vender_id'])][last_item_idx]
+							if(other_ded):
+								for j in other_deduction_dict:
+									for k in other_ded:
+										if(j["DFN"] == k["DFN"]):
+											j["Deduction Amount"]=j["Deduction Amount"]-k["Deduction Amount"]
+								other_deduction_dict = [m for m in other_deduction_dict if m["Deduction Amount"] != 0]
+						
+						har_vender_dict[str(data_calculation_dict[d]["vender_id"])].append(other_deduction_dict)
+						
+				else:
+					other_deductions = frappe.get_all("Deduction Form",
+																filters={"h_and_t_contract_id":data_calculation_dict[d]["contract_id"],"docstatus":1, "season" : self.season , "deduction_status" : 0,"branch" : self.branch,"deduction_name":["in", ["Transporter Advance","HRT Machine Advance","Bullock Cart Advance"]],"vender_type":"Transporter"}, 
+																fields=["farmer_code", "account", "name", "deduction_amount","paid_amount" ,"h_and_t_contract_id", "farmer_application_loan_id","interest_calculate_on_amount", "rate_of_interest" , "from_date_interest_calculation","interest_account" ,"update_from_date_interest_calculation","deduction_name"])
+	
+					other_deduction_dict=[{"Farmer Code": o_d.farmer_code,"Deduction Amount": round((float(o_d.deduction_amount) - float(o_d.paid_amount))),"Account": o_d.account,"DFN": o_d.name,"Contract Id":o_d.h_and_t_contract_id,"Deduction Type":o_d.deduction_name}for o_d in other_deductions if not o_d.farmer_application_loan_id ]
+					if int(len(contract_dict[str(data_calculation_dict[d]["contract_id"])]))>1:
+				
+						for i in range(len(contract_dict[str(data_calculation_dict[d]["contract_id"])])):
+							if(str(d)!=str(contract_dict[str(data_calculation_dict[d]["contract_id"])][i])):
+								index=str(contract_dict[str(data_calculation_dict[d]["contract_id"])][i])
+								formatted_input = re.sub(r'\]\[', '],[', str(data_calculation_dict[index]["all_deduction_information"]))
+								# frappe.msgprint(f"{formatted_input}")
+								formatted_input = '[' + formatted_input + ']'
+								parsed_list = ast.literal_eval(formatted_input)
+								if(len(parsed_list)>=8):
+									other_ded=parsed_list[3]
+									if(other_ded):
+										for j in other_deduction_dict:
+											for k in other_ded:
+												if(j["DFN"] == k["DFN"]):
+													j["Deduction Amount"]=j["Deduction Amount"]-k["Deduction Amount"]
+										other_deduction_dict = [m for m in other_deduction_dict if m["Deduction Amount"] != 0]
+				# frappe.msgprint(str(other_deduction_dict))
+				
+											
 				other_deductions_amt=sum(float(g["Deduction Amount"]) for g in other_deduction_dict)
-				# frappe.msgprint(f"<b>other_deduction_dict: </b>{other_deduction_dict}")			
-    
+				# frappe.msgprint(f"<b>trans_vender_dict:</b> {trans_vender_dict} <b>har_vender_dict:</b> {har_vender_dict}")
 				bullock_cart_advance_dict=[{"Farmer Code": o_d.farmer_code,"Deduction Amount": round((float(o_d.deduction_amount) - float(o_d.paid_amount))),"Account": o_d.account,"DFN": o_d.name,"Contract Id":o_d.h_and_t_contract_id,"Deduction Type":o_d.deduction_name}for o_d in other_deductions if not o_d.farmer_application_loan_id and o_d.deduction_name == "Bullock Cart Advance"]
 				bullock_cart_advance = []
 				if int(len(contract_dict[str(data_calculation_dict[d]["contract_id"])]))>1:
@@ -579,7 +561,7 @@ class HandTBilling(Document):
 								if(bullock_cart_advance):
 									for j in bullock_cart_advance_dict:
 										for k in bullock_cart_advance:
-											if(j["DFN"] == k["DFN"] ):
+											if(j["DFN"] == k["DFN"]):
 												j["Deduction Amount"]=j["Deduction Amount"]-k["Deduction Amount"]
 									bullock_cart_advance_dict = [m for m in bullock_cart_advance_dict if m["Deduction Amount"] != 0]
 				bullock_cart_advance_amt=sum(float(g["Deduction Amount"]) for g in bullock_cart_advance_dict)
@@ -649,6 +631,7 @@ class HandTBilling(Document):
 																	fields=["farmer_code", "account", "name", "deduction_amount","deduction_name","paid_amount" ,"h_and_t_contract_id","farmer_application_loan_id","vender_type"],)
 					penalty_deuction_li=[{"Farmer Code": o_d.farmer_code,"Penalty Amount": round((float(o_d.deduction_amount) - float(o_d.paid_amount))),"Account": o_d.account,"DFN": o_d.name,"Contract Id":o_d.h_and_t_contract_id,"Vender Type":o_d.vender_type}for o_d in panalty if ((not o_d.farmer_application_loan_id) and frappe.get_value("Deduction Type",o_d.deduction_name,"is_penalty_deduction"))]
 					other_ded=[]
+
 					if int(len(contract_dict[str(data_calculation_dict[d]["contract_id"])]))>1:
 						for i in range(len(contract_dict[str(data_calculation_dict[d]["contract_id"])])):
 							if(str(d)!=str(contract_dict[str(data_calculation_dict[d]["contract_id"])][i]) and data_calculation_dict[d]["vender_id"]==data_calculation_dict[str(contract_dict[str(data_calculation_dict[d]["contract_id"])][i])]["vender_id"]):
@@ -669,7 +652,8 @@ class HandTBilling(Document):
 			total_deduction = (sales_invoice_deduction_amt+ sales_invoice_deduction_store_material_amt+ loan_installment_amt+ loan_interest_amt+other_deductions_amt+round(float(tds_deduction_amt_trs))+round(float(sd_dedution_amt_trs))+round(float(hire_ded_amt))+round(float(penalty_charge)))
 			total_amt=data_calculation_dict[d]["total"]
 			payable_amt=total_amt-total_deduction
-			frappe.msgprint(f"<b>{total_deduction}</b>")
+			# frappe.msgprint(f"<b>{total_deduction}</b>")
+			# frappe.msgprint(f"<b>other_deduction_dict: </b>{other_deduction_dict}")	
 			if(payable_amt>=0):
 				data_calculation_dict[d]["deduction"]=round(float(total_deduction))
 			else:
@@ -687,28 +671,6 @@ class HandTBilling(Document):
 						# frappe.msgprint(str(all_deduction))
 					if len(all_deduction)>=1:
 						last_poped_entry = all_deduction.pop(-1)
-					# total_sum = float(sum([
-					# 						float(entry.get("Installment Interest Amount", 0))
-					# 						+ float(entry.get("Installment Amount", 0)) 
-					# 						+ (float(entry.get("Outstanding Amount", 0)) if entry.get("Sale Type") == "Diesel Sale" else 0)
-					# 						+ float(entry.get("Deduction Amount", 0))
-					# 						+ float(entry.get("TDS Deduction Amount", 0))
-					# 						+ float(entry.get("SD Deduction Amount", 0))
-					# 						+ float(entry.get("Hire Charge Amount", 0))
-					# 						+ float(entry.get("Penalty Amount", 0))
-					# 						+ float(entry.get("Outstanding Amount", 0)) if entry.get("Sale Type") == "Store Material" else 0
-					# 						for entry in all_deduction 
-					# 					]))
-					# frappe.msgprint(f"<b>all_deduction: </b>{all_deduction}")
-					# lst = [{"IIA":(entry.get("Installment Interest Amount", 0)),
-					# 		"IA":(entry.get("Installment Amount", 0)),
-					# 		"OAD":(entry.get("Outstanding Amount", 0)) if entry.get("Sale Type") == "Diesel Sale" else 0,
-					# 		"DA":(entry.get("Deduction Amount", 0)),
-					#   		"TDS":(entry.get("TDS Deduction Amount", 0)),
-					#     	"SD":(entry.get("SD Deduction Amount", 0)),
-					#      	"HC":(entry.get("Hire Charge Amount", 0)),
-					#       	"PA":(entry.get("Penalty Amount", 0)),
-					#        	"OAS":(entry.get("Outstanding Amount", 0)) if entry.get("Sale Type") == "Store Material" else 0} for entry in all_deduction]
 						total_sum = 0.0
 						for entry in all_deduction:
 							
@@ -835,7 +797,7 @@ class HandTBilling(Document):
 				other_deduction_dict = [record for record in all_deduction if 'Deduction Amount' in record]
 				hire_cherge_list=[record for record in all_deduction if 'Hire Charge Amount' in record]
 				penalty_deuction_li=[record for record in all_deduction if 'Penalty Amount' in record]
-
+			
 			data_calculation_dict[d]["sales_invoice_deduction"]=float(sales_invoice_deduction_amt)
 			data_calculation_dict[d]["sales_invoice_deduction_store_material_amt"] = float(sales_invoice_deduction_store_material_amt)
 			data_calculation_dict[d]["bullock_cart_advance"]=float(bullock_cart_advance_amt)
@@ -854,7 +816,8 @@ class HandTBilling(Document):
 			if hire_charge_amt:
 				data_calculation_dict[d]["remaining_hire"]=hire_charge_amt-hire_ded_amt
 			data_calculation_dict[d]["all_deduction_information"]=str(sales_invoices)+str(loan_installment)+str(loan_installment_intrest)+str(other_deduction_dict)+str(tds_ded_list_tras)+str(sd_ded_list_tr)+str(hire_cherge_list)+str(penalty_deuction_li)+str(sales_invoices_store)+str(bullock_cart_advance_dict)+str(hrt_machine_advance_dict)+str(transporter_advance_dict)
-			# frappe.msgprint(str(data_calculation_dict[d]["all_deduction_information"]))
+			
+      		# frappe.msgprint(str(data_calculation_dict[d]["all_deduction_information"]))
 			if(data_calculation_dict[d]["vehicle_type"]=="BULLOCK CART" and data_calculation_dict[d]["type"]=="Harvester" and data_calculation_dict[d]["transporter"]==data_calculation_dict[d]["vender_id"]):
 				if data_calculation_dict[d]["temp_str"]:
 					temp_str=data_calculation_dict[d]["temp_str"]
@@ -907,13 +870,6 @@ class HandTBilling(Document):
 
 	#To get Net Deduction and collection for Transporter and Harvester
 	def total_values(self):
-		"""
-			calculates All total values according to vendor type as Transporter, Harvestor and Bullock Cart
-   			which includes total weight,total deduction amount, total collection amount and total payble amount 
-
-			@params:self
-			@returns:None
-		"""
 		total_weight = 0
 		total_collection_amount = 0
 		total_deduction = 0
@@ -963,12 +919,6 @@ class HandTBilling(Document):
 
 	#To get the km rate 
 	def get_rate(self,distance,vehicle_type,vender_type):
-		"""
-  		Get rate according distance, vehicle_type, vendor_type
-
-		@params:self,distance(float),vehicle_type(str), vendor_type(str)
-		@returns:rate_per_km
-    	"""
 		dict1={}
 		count=True
 		if(vender_type=="Transporter"):
@@ -1006,21 +956,9 @@ class HandTBilling(Document):
 
 	#To update the status ater before cancel event on cane weight doctype
 	def on_trash(self):
-		"""
-		To update the status ater before cancel event on cane weight doctype
-  
-		@params:self
-		@returns:None
-		"""
 		self.bill_status_change_of_cane_weight_on_trash()
 
 	def before_cancel(self):
-		"""
-   		Executes before canceling Document
-
-		@params:self
-		@returns:None
-     	"""
 		self.bill_status_change_of_cane_weight_on_trash()
 		self.cancel_journal_entry()
 		self.update_value_in_farmer_loan_cancel()
@@ -1030,26 +968,12 @@ class HandTBilling(Document):
 		self.delete_issue_date()
   
 	def cancel_journal_entry(self):
-     
-		"""
-		cancels journal entry
-
-		@params:self
-		@returns:None
-  		"""
 		if(self.journal_entry_id):
 			doc = frappe.get_doc("Journal Entry",(str(self.journal_entry_id)))
 			if doc.docstatus == 1:
 				doc.cancel()
 		
 	def bill_status_change_of_cane_weight_on_trash(self):
-		"""
-  		set h_and_t_billing_status to false for respective documents
-		on Cane Weight Doctype
-		
-		@params:self
-		@returns:None
-    	"""
 		for s in self.get("calculation_table"):
 			if(s.type=="Transporter"):
 				doc = frappe.db.get_list("Cane Weight",
@@ -1060,12 +984,6 @@ class HandTBilling(Document):
 	
 	        
 	def update_value_in_farmer_loan_cancel(self):
-		"""
-  		It updates values after cancellation
-    
-		@params: self
-		@returns:None
-    	"""
 		if self.includes_loan_installment:
 			for s in self.get("calculation_table"):	
 				list_data_lo =[]
@@ -1081,15 +999,6 @@ class HandTBilling(Document):
 							frappe.db.set_value("Deduction Form",d.name,"paid_amount",round((float(d.paid_amount)-(float(data_lo['Installment Amount']))),2))
 			
 	def set_date_in_farmer_loan_child_for_next_installment_on_cancel(self):
-     
-		"""
-  
-		It Sets date in farmer loan child for 
-		next installment after cancellation of document
-		
-		@params:self
-		@returns:None
-		"""
 		for s in self.get("calculation_table"):
 			list_data_lo =[]
 			formatted_input = re.sub(r'\]\[', '],[', s.all_deduction_information)
@@ -1116,13 +1025,6 @@ class HandTBilling(Document):
 						frappe.db.set_value("Deduction Form",d.name,"update_from_date_interest_calculation",None)
           
 	def update_value_in_deduction_form_on_cancel(self):
-     
-		"""
-		It updates value in deduction form on cancel
-		
-		@params:self
-		@returns:jNone
-		"""
 		for s in self.get("calculation_table"):
 			list_data_od =[]
 			list_data_pen=[]
@@ -1146,12 +1048,6 @@ class HandTBilling(Document):
 
 
 	def je_of_sales_invoice_and_farmer_loan(self):
-		"""
-		Inserts journal Entry according respective conditions
-  
-		@params:self
-		@returns:None
-  		"""
 		ded = []
 		counter = 0
 		bench_doc=frappe.get_doc("Branch",self.branch)
@@ -1748,24 +1644,8 @@ class HandTBilling(Document):
 									"cost_center":self.cost_center,
 									"branch":self.branch
 								
-								},)
-		# lst1 = [{"debit":j.debit_in_account_currency,"account":j.account,"contract_id":j.contract_id} for j in je.accounts]
-		# lst2 = [{"credit":j.credit_in_account_currency,"account":j.account,"contract_id":j.contract_id} for j in je.accounts]
-		# lst3 = []
-		# for i in range(0,len(lst1)):
-		# 	if lst1[i]["debit"]:
-		# 		lst3.append(lst1[i])
-				
-		# 	if lst2[i]["credit"]:
-		# 		lst3.append(lst2[i])
-		# lst2 = []
-		# for i in je.accounts:
-		# 	lst1.append(i.debit_in_account_currency)
-		# for j in je.accounts:
-		# 	lst2.append(j.credit_in_account_currency)
-   
-		# frappe.throw(str(list_data_store_mat))
-		# frappe.throw(str(lst1)+" ==== "+ str(lst2))
+								})
+		
 		if counter > 0:
 			# frappe.throw(str(lst3))
 			je.insert()
@@ -1777,12 +1657,6 @@ class HandTBilling(Document):
 			je.submit()
 
 	def update_value_in_farmer_loan(self):
-		"""
-  		Updates paid amount in deduction form according to respective conditions
-    
-  		@params:self
-		@returns:None
-  		"""
     
 		if self.includes_loan_installment:
 			for s in self.get("calculation_table"):
@@ -1800,12 +1674,6 @@ class HandTBilling(Document):
 
 	       
 	def set_date_in_farmer_loan_child_for_next_installment(self):
-		"""
-		Updates Interest calculation from subsequent dates on Deduction form document
-  
-		@params:self
-		@returns:None
-  		"""
 		for s in self.get("calculation_table"):
 			list_data_lo =[]
 			formatted_input = re.sub(r'\]\[', '],[', s.all_deduction_information)
@@ -1835,12 +1703,6 @@ class HandTBilling(Document):
 
 	     
 	def update_value_in_deduction_form(self):
-		"""
-		Updates Deduction status on Deduction form as 1
-
-		@params:self
-		@returns:None  
-		"""
 		for s in self.get("calculation_table"):  
 			list_data_od =[]
 			list_data_pen=[]
@@ -1865,12 +1727,6 @@ class HandTBilling(Document):
 						frappe.db.set_value("Deduction Form",str(data_od['DFN']),"deduction_status",1)
         
 	def add_deduction_doc(self):
-		"""
-  		Add new Deduction Document in deduction form
-    
-  		@params:self
-		@returns:None
-  		"""
 		for s in self.get("calculation_table"):
 			if float(s.remaining_hire_charge)>0 and s.type=="Transporter":
 				doc = frappe.new_doc('Deduction Form')
@@ -1879,7 +1735,7 @@ class HandTBilling(Document):
 				doc.season=self.season
 				doc.branch=self.branch
 				doc.date=self.today
-				doc.vender_type="H and T"
+				doc.vender_type=s.type
 				doc.account=s.hire_account
 				doc.h_and_t_contract_id=s.contract_id 
 				doc.deduction_status=0
@@ -1888,13 +1744,6 @@ class HandTBilling(Document):
 				doc.submit()
 	
 	def delete_hire_ded(self):
-		"""
-  	It cancels the Deduction Form document
-	which has greater remaining hire charge and type should be equal to Transporter
- 
- 	@params:self
-	@returns:None
-    """
 		for s in self.get("calculation_table"):
 			if float(s.remaining_hire_charge)>0 and s.type=="Transporter":	
 				doc = frappe.get_doc("Deduction Form",(str(s.deduction_doc)))
@@ -1902,12 +1751,6 @@ class HandTBilling(Document):
 					doc.cancel()
      
 	def set_issue_date(self):
-		"""
-		updates issue date to to_date according to respective conditions
-  
-  		@params:self
-		@returns:None
-  		"""
 		for s in self.get("calculation_table"):
 			if(s.type=="Transporter" and s.cartno>0 and s.cart_no_list):
 				li=eval(str(s.cart_no_list))
@@ -1922,12 +1765,6 @@ class HandTBilling(Document):
     
 	
 	def delete_issue_date(self):
-		"""
-		Deletes updated issue date from Vehicle Registration
-		
-		@params:self
-		@returns:None
-		"""
 		for s in self.get("calculation_table"):
 			if(s.type=="Transporter" and s.cartno>0 and s.cart_no_list):
 				li=eval(str(s.cart_no_list))
@@ -1956,25 +1793,12 @@ class HandTBilling(Document):
 		self.set_issue_date()
   
 	def delete_row_record(self):
-		"""
-				Delete record which is having check False
-		
-				@params:self
-				@returns:None
-		"""
 		doc = frappe.get_all("Child H and T Data",filters ={"parent": self.name , "check" : 0},)
 		for d in doc:
 			frappe.delete_doc("Child H and T Data", d.name)
 	
       
 	def change_status_on_cane_weight(self):
-		"""
-  
-		Changes Status of h_and_t_billing_status to True
-		
-		@params:self
-		@returns:None
-		"""
 		for s in self.get("calculation_table"):
 			if(s.type=="Transporter"):
 				doc = frappe.db.get_list("Cane Weight",
