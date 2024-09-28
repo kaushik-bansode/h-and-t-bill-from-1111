@@ -1802,6 +1802,7 @@ class HandTBilling(Document):
 			list_data_od =list_data_od[3]
 			list_data_pen=eval(str(parsed_list))
 			list_data_pen=list_data_pen[7]
+   
 			if(list_data_od):
 				for data_od in list_data_od:
 					doc=frappe.get_doc("Deduction Form",str(data_od['DFN']))
