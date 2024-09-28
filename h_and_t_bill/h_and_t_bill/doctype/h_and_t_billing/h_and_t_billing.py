@@ -1746,6 +1746,7 @@ class HandTBilling(Document):
 			je.save()
 			je.submit()
 
+	
 	def update_value_in_farmer_loan(self):
 		if self.includes_loan_installment:
 			for s in self.get("calculation_table"):
