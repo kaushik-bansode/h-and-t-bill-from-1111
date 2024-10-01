@@ -37,6 +37,8 @@
   "section_break_ay9rd",
   "all_deduction_information",
   "cart_no_list",
+  "remaining_hire_doc_deduction",
+  "hire_doc_paid_amount_docs",
   "column_break_broji",
   "cartno",
   "remaining_hire_charge",
@@ -264,12 +266,23 @@
    "fieldname": "transporter_advance",
    "fieldtype": "Currency",
    "label": "Transporter Advance"
+  },
+  {
+   "fieldname": "remaining_hire_doc_deduction",
+   "fieldtype": "Small Text",
+   "label": "Remaining Hire doc ded"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "hire_doc_paid_amount_docs",
+   "fieldtype": "Small Text",
+   "label": "Hire Doc Paid amount docs"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-09-10 09:55:53.885758",
+ "modified": "2024-10-01 12:12:48.646666",
  "modified_by": "Administrator",
  "module": "H And T Bill",
  "name": "Child H and T Calculation",

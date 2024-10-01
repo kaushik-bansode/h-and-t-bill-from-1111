@@ -169,11 +169,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "do_billing",
-   "fieldtype": "Button",
-   "label": "Do Billing"
-  },
-  {
    "fieldname": "section_break_tsbtf",
    "fieldtype": "Section Break"
   },
@@ -437,6 +432,12 @@
    "fieldname": "tab_break_g2jfu",
    "fieldtype": "Tab Break",
    "label": "Child H and T invisible"
+  },
+  {
+   "fieldname": "do_billing",
+   "fieldtype": "Button",
+   "hidden": 1,
+   "label": "Do Billing"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -447,7 +448,7 @@
    "link_fieldname": "custom_h_and_t_billing_id"
   }
  ],
- "modified": "2024-09-10 16:56:10.447050",
+ "modified": "2024-09-19 17:41:48.338920",
  "modified_by": "Administrator",
  "module": "H And T Bill",
  "name": "H and T Billing",
