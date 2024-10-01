@@ -1830,6 +1830,7 @@ class HandTBilling(Document):
       
 			if s.remaining_hire_charge>0:
 				rem_hire_charge = s.remaining_hire_charge
+				paid_amount_ded_doc = []
 				if hire_doc_list:
 					for h in hire_doc_list:
 						doc = frappe.get_doc("Deduction Form",h["name"])
@@ -1839,10 +1840,14 @@ class HandTBilling(Document):
 						else:
 							doc.paid_amount = rem_hire_charge
 						# frappe.throw(str(doc))
+						paid_amount_ded_doc.append({"name":doc.name,"paid_amount":doc.paid_amount})
+						s.hire_doc_paid_amount_docs = str(paid_amount_ded_doc)
 						doc.save()
 						doc.submit()
+						
 				else:
 					self.add_deduction_doc(s.vender_id,rem_hire_charge,s.type,s.hire_account,s.contract_id,s)
+					
 					
 				# if rem_hire_charge > 0:
 						
@@ -1869,12 +1874,21 @@ class HandTBilling(Document):
 		doc.submit()
 	
 	def delete_hire_ded(self):
-		pass
-		# for s in self.get("calculation_table"):
-		# 	if float(s.remaining_hire_charge)>0 and s.type=="Transporter":	
-		# 		doc = frappe.get_doc("Deduction Form",(str(s.deduction_doc)))
-		# 		if doc.docstatus == 1:
-		# 			doc.cancel()
+		# pass
+		for s in self.get("calculation_table"):
+			if float(s.remaining_hire_charge)>0 and s.type=="Transporter" and s.deduction_doc:	
+				doc = frappe.get_doc("Deduction Form",(str(s.deduction_doc)))
+				if doc.docstatus == 1:
+					doc.cancel()
+			if s.hire_doc_paid_amount_docs:
+				hire_doc_paid_list = eval(s.hire_doc_paid_amount_docs)
+				if hire_doc_paid_list:
+					for h in hire_doc_paid_list:
+						doc = frappe.get_doc("Deduction Form",h['name'])
+						doc.paid_amount = doc.paid_amount - h['paid_amount']
+						doc.save()
+						doc.submit()
+				
      
 	def set_issue_date(self):
 		for s in self.get("calculation_table"):
